@@ -12,7 +12,7 @@ export const spaceDatasets: SpaceDataset[] = [
     year: '2015',
     tileSource: {
       type: 'image',
-      url: 'http://localhost:3000/tiles/1759528870725.dzi'
+      url: 'http://localhost:3000/tiles/andromeda/andromeda.dzi'
     }
   },
 ];

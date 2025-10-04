@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { spaceDatasets } from '../data/spaceDatasets';
 import type { SpaceDataset } from '../types';
 
 const Sidebar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { currentDataset, setCurrentDataset } = useData();
+  const { datasets, currentDataset, setCurrentDataset, isLoading, error } = useData();
 
   const getTypeIcon = (type: SpaceDataset['type']): string => {
     const icons = {
@@ -31,7 +30,7 @@ const Sidebar: React.FC = () => {
     return colors[type];
   };
 
-  const filteredDatasets = spaceDatasets.filter(dataset =>
+  const filteredDatasets = datasets.filter(dataset =>
     dataset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     dataset.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     dataset.type.includes(searchQuery.toLowerCase())
@@ -70,11 +69,17 @@ const Sidebar: React.FC = () => {
         <div className="stats stats-vertical lg:stats-horizontal shadow bg-base-100">
           <div className="stat">
             <div className="stat-title">Datasets</div>
-            <div className="stat-value text-primary">{spaceDatasets.length}</div>
+            <div className="stat-value text-primary">
+              {isLoading ? '...' : datasets.length}
+            </div>
           </div>
           <div className="stat">
             <div className="stat-title">Max Resolution</div>
-            <div className="stat-value text-secondary">2.5GP</div>
+            <div className="stat-value text-secondary">
+              {datasets.length > 0 ? datasets.reduce((max, d) => 
+                parseFloat(d.resolution.replace(/[^\d.]/g, '')) > parseFloat(max.resolution.replace(/[^\d.]/g, '')) ? d : max
+              ).resolution : 'Loading...'}
+            </div>
           </div>
         </div>
       </div>
@@ -83,8 +88,23 @@ const Sidebar: React.FC = () => {
       <div className="flex-1 overflow-y-auto">
         <div className="p-4">
           <h3 className="font-semibold text-lg mb-3">Space Image Collections</h3>
-          <div className="space-y-3">
-            {filteredDatasets.map((dataset) => (
+          
+          {isLoading && (
+            <div className="flex justify-center items-center py-8">
+              <div className="loading loading-spinner loading-md"></div>
+              <span className="ml-2">Loading datasets...</span>
+            </div>
+          )}
+          
+          {error && (
+            <div className="alert alert-error mt-2">
+              <span>Failed to load datasets: {error}</span>
+            </div>
+          )}
+          
+          {!isLoading && !error && (
+            <div className="space-y-3">
+              {filteredDatasets.map((dataset) => (
               <div
                 key={dataset.id}
                 className={`card card-compact cursor-pointer transition-all duration-200 hover:scale-105 ${
@@ -110,8 +130,9 @@ const Sidebar: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
